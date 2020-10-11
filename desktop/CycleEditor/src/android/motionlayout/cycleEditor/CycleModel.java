@@ -35,6 +35,8 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import static android.motionlayout.cycleEditor.Utils.debug;
+
 /**
  * The CycleModel of a collection of  KeyCycles for a single property
  */
@@ -57,6 +59,8 @@ class CycleModel {
   public JTextField mKeyCycleNo;
   private JComboBox<String> mMode;
   private int mModeValue;
+  private String mModeCustomValue;
+
   JButton delete, add;
   public JSlider mPos, mPeriod, mAmp, mOff;
 
@@ -65,7 +69,7 @@ class CycleModel {
   }
 
   boolean inCallBack = false;
-  String[] waveShapeName = {
+  static String[] waveShapeName = {
       "sin", "square", "triangle", "sawtooth", "reverseSawtooth", "cos", "bounce"
   };
   int mAttrIndex = 3;
@@ -140,8 +144,9 @@ class CycleModel {
 
   public void update() {
     updateUIelements();
+    debug(" mModeValue "+mModeValue);
     mCycleView.setCycle(0, values[POS], values[PERIOD], values[AMP], values[OFFSET], selected,
-        mModeValue);
+        mModeValue, (mModeValue == CycleView.Oscillator.CUSTOM_SPLINE)?mModeCustomValue:null);
     generateXML();
     mCycleView.repaint();
   }
@@ -215,7 +220,15 @@ class CycleModel {
   }
 
   void setMode() {
-    mModeValue = mMode.getSelectedIndex();
+    int modeIndex =   mMode.getSelectedIndex();
+    if (modeIndex != -1) {
+      mModeValue = modeIndex;
+      mModeCustomValue = null;
+    } else {
+      mModeValue = CycleView.Oscillator.CUSTOM_SPLINE;
+      mModeCustomValue = (String) mMode.getSelectedItem();
+    }
+    debug(" mModeCustomValue (calling update) "+mModeCustomValue);
     update();
   }
 
@@ -550,7 +563,7 @@ class CycleModel {
       xmlstr += "        motion:target=\"@+id/" + target + "\"\n";
       xmlstr += "        motion:wavePeriod=\"" + (int) (per) + "\"\n";
       xmlstr += "        motion:waveOffset=\"" + CycleView.MainAttribute.process(off, mAttrIndex) + "\"\n";
-      xmlstr += "        motion:waveShape=\"" + waveShapeName[mMode.getSelectedIndex()] + "\"\n";
+      xmlstr += "        motion:waveShape=\"" +getModeString (mMode)+  "\"\n";
       xmlstr += "        " + CycleView.MainAttribute.Names[mAttrIndex] + "=\"" + CycleView.MainAttribute
           .process(amp, mAttrIndex) + "\"/>\n\n";
       if (selected == i) {
@@ -563,7 +576,17 @@ class CycleModel {
     }
     return str;
   }
+  static String getModeString(JComboBox<String> mode) {
+    int modeIndex = mode.getSelectedIndex();
+    debug("modeIndex "+modeIndex);
 
+    if (modeIndex != -1) {
+      return waveShapeName[modeIndex];
+    }
+    String str = (String) mode.getSelectedItem();
+    debug(str);
+    return str;
+  }
   public void generateXML() {
     myCycle.myModelSet.generateXML(this);
   }

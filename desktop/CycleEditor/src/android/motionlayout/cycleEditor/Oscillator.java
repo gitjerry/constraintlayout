@@ -31,6 +31,8 @@ public class Oscillator {
     public static final int TRIANGLE_WAVE = 2;
     public static final int SAW_WAVE = 3;
     public static final int REVERSE_SAW_WAVE = 4;
+    public static final int CUSTOM_SPLINE = 5;
+    MonotoneSpline customSpline;
     private int mType;
     double PI2 = Math.PI * 2;
 
@@ -87,7 +89,8 @@ public class Oscillator {
                 return ((getP(time) * 2 + 1) % 2) - 1;
             case REVERSE_SAW_WAVE:
                 return (1 - ((getP(time) * 2 + 1) % 2));
-
+            case CUSTOM_SPLINE:
+                return customSpline.getPos(getP(time)%1.0,0);
         }
     }
 

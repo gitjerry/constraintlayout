@@ -41,6 +41,8 @@ import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 
+import static android.motionlayout.cycleEditor.Utils.debug;
+
 /**
  * A simple graphical interface to KeyCycles
  */
@@ -642,6 +644,8 @@ public class CycleView extends JPanel {
     public static final int REVERSE_SAW_WAVE = 4;
     public static final int COS_WAVE = 5;
     public static final int BOUNCE = 6;
+    public static final int CUSTOM_SPLINE = 7;
+    MonotoneSpline customSpline;
 
     private int mType;
     double PI2 = Math.PI * 2;
@@ -731,6 +735,8 @@ public class CycleView extends JPanel {
         case BOUNCE:
           double x = 1 - Math.abs(((getP(time)) * 4) % 4 - 2);
           return 1 - x * x;
+        case CUSTOM_SPLINE:
+          return customSpline.getPos(getP(time)%1.0,0);
       }
     }
   }
@@ -739,7 +745,7 @@ public class CycleView extends JPanel {
   Oscillator mOscillator;
 
   public void setCycle(int n, double[] pos, double[] period, double[] amplitude, double[] offset,
-      int selected, int curveType) {
+      int selected, int curveType, String customCurve) {
     double[] t = new double[pos.length];
     double[][] v = new double[pos.length][2];
 
@@ -750,8 +756,12 @@ public class CycleView extends JPanel {
     }
     MonotoneSpline ms = new MonotoneSpline(t, v);
     Oscillator osc = new Oscillator();
-
+    debug("curveType "+curveType);
     osc.mType = curveType;
+    if (customCurve != null ) {
+      debug("building spline "+customCurve);
+      osc.customSpline = MonotoneSpline.buildWave(customCurve);
+    }
     for (int i = 0; i < pos.length; i++) {
 
       osc.addPoint(pos[i], (float) period[i]);

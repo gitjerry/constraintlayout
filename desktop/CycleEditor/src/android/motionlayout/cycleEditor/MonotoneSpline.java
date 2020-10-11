@@ -16,6 +16,9 @@
 
 package android.motionlayout.cycleEditor;
 
+import java.text.DecimalFormat;
+import java.util.Arrays;
+
 /**
  * This performs a spline interpolation in multiple dimensions
  */
@@ -64,6 +67,50 @@ public class MonotoneSpline extends Interpolator {
         mT = time;
         mY = y;
         mTangent = tangent;
+    }
+
+    public static MonotoneSpline buildWave(String configString) {
+        // done this way for efficiency
+        String str = configString;
+        double[] values = new double[str.length() / 2];
+        int start = configString.indexOf('(') + 1;
+        int off1 = configString.indexOf(',', start);
+        int count = 0;
+        while (off1 != -1) {
+            String tmp = configString.substring(start, off1).trim();
+            System.out.println(" parse#$# tmp \"" + tmp + "\"");
+            values[count++] = Double.parseDouble(tmp);
+            off1 = configString.indexOf(',', start = off1 + 1);
+        }
+        off1 = configString.indexOf(')', start);
+        String tmp = configString.substring(start, off1).trim();
+        values[count++] = Double.parseDouble(tmp);
+
+        return buildWave(Arrays.copyOf(values, count));
+    }
+
+    private static MonotoneSpline buildWave(double[] values) {
+        int length = values.length * 3 - 2;
+        int len = values.length - 1;
+        double gap = 1.0 / len;
+        double[][] points = new double[length][1];
+        double[] time = new double[length];
+        for (int i = 0; i < values.length; i++) {
+            double v = values[i];
+            points[i + len][0] = v;
+            time[i + len] = i * gap;
+            if (i > 0) {
+                points[i + len * 2][0] = v + 1;
+                time[i + len * 2] = i * gap + 1;
+
+                points[i - 1][0] = v - 1 - gap;
+                time[i - 1] = i * gap + -1 - gap;
+            }
+        }
+
+        MonotoneSpline ms = new MonotoneSpline(time, points);
+
+        return ms;
     }
 
     @Override

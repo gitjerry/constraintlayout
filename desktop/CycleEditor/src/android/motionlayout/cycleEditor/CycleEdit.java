@@ -235,6 +235,7 @@ public class CycleEdit extends JPanel {
     control.add(new JLabel("WaveType:", TRAILING), gbc);
 
     JComboBox<String> mode = new JComboBox<>(myCycleModel.waveShapeName);
+    mode.setEditable(true);
     gbc.gridx += 3;
     gbc.anchor = GridBagConstraints.WEST;
     control.add(mode, gbc);
